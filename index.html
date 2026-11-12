@@ -64,7 +64,7 @@ document.getElementById('read').addEventListener('click',async()=>{
    langPath:'https://tessdata.projectnaptha.com/4.0.0',
    workerBlobURL:true
   });
-  const result=await worker.recognize(currentFile);
+  const result=await worker.recognize(preview);
   recognized.value=result.data.text||'No se detectó texto claro.';
   status.innerHTML='<span class="good">Lectura terminada.</span> Verifica manualmente cada cifra y cada signo. El OCR no identifica por sí solo qué casillas se cruzan.';
  }catch(e){

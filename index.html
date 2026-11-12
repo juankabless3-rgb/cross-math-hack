@@ -57,13 +57,17 @@ document.getElementById('read').addEventListener('click',async()=>{
   if(!window.Tesseract)await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
   status.textContent='Iniciando reconocimiento. La primera carga puede tardar…';
   if(worker){try{await worker.terminate()}catch(e){}}
-  worker=await Tesseract.createWorker('eng',1,{
-   logger:m=>{if(m.status)status.textContent=m.status+(m.progress!==undefined?' '+Math.round(m.progress*100)+'%':'');},
-   workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',
-   corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1',
-   langPath:'https://tessdata.projectnaptha.com/4.0.0',
-   workerBlobURL:true
-  });
+  
+worker=await Tesseract.createWorker('eng',1,{
+  logger:m=>{
+    if(m.status){
+      status.textContent=m.status+
+      (m.progress?' '+Math.round(m.progress*100)+'%':'');
+    }
+  },
+  workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js'
+});
+
   const result=await worker.recognize(preview);
   recognized.value=result.data.text||'No se detectó texto claro.';
   status.innerHTML='<span class="good">Lectura terminada.</span> Verifica manualmente cada cifra y cada signo. El OCR no identifica por sí solo qué casillas se cruzan.';

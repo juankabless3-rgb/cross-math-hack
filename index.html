@@ -58,17 +58,8 @@ document.getElementById('read').addEventListener('click',async()=>{
   status.textContent='Iniciando reconocimiento. La primera carga puede tardar…';
   if(worker){try{await worker.terminate()}catch(e){}}
   
-worker=await Tesseract.createWorker('eng',1,{
-  logger:m=>{
-    if(m.status){
-      status.textContent=m.status+
-      (m.progress?' '+Math.round(m.progress*100)+'%':'');
-    }
-  },
-  workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',
-  corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1',
-  langPath:'https://tessdata.projectnaptha.com/4.0.0'
-});
+worker=await Tesseract.createWorker('eng'1);
+
 
 
   const result=await worker.recognize(preview);

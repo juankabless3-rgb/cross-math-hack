@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827"><title>CROSS MATH HACK V2.1</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#111827;color:#f8fafc;font:16px system-ui}main{max-width:760px;margin:auto;padding:18px 14px 36px}
+h1{font-size:24px;margin:0}.muted{color:#aab4c4;line-height:1.5}.card{background:#1f2937;border:1px solid #374151;border-radius:16px;padding:15px;margin:14px 0}
+button{display:block;width:100%;padding:13px;border:0;border-radius:11px;background:#ffd28a;color:#241708;font-size:16px;font-weight:750;margin-top:12px}
+button.secondary{background:#334155;color:#fff}input[type=file]{width:100%;padding:12px;background:#0b1220;border:1px solid #475569;border-radius:10px;color:white}
+img{max-width:100%;display:block;margin:12px auto;border-radius:10px}textarea{width:100%;min-height:180px;padding:12px;background:#0b1220;color:white;border:1px solid #475569;border-radius:10px;font:15px ui-monospace,monospace}
+.status{white-space:pre-wrap;line-height:1.5}.good{color:#86efac}.warn{color:#fcd34d}
+</style></head><body><main>
+<h1>🧩 CROSS MATH HACK V2.1</h1>
+<p class="muted">Lector OCR con carga explícita del motor. Selecciona la imagen desde el almacenamiento del teléfono.</p>
+<section class="card">
+<strong>1. Selecciona la captura original del juego</strong>
+<input id="photo" type="file" accept="image/*">
+<img id="preview" alt="Vista previa" hidden>
+<button id="read">Leer números y símbolos</button>
+<div id="status" class="status muted">Esperando una imagen.</div>
+</section>
+<section class="card">
+<strong>2. Texto reconocido (editable)</strong>
+<p class="muted">El OCR puede confundir signos o posiciones. Comprueba el resultado antes de usarlo.</p>
+<textarea id="recognized" placeholder="El texto detectado aparecerá aquí..."></textarea>
+<button class="secondary" id="copy">Copiar texto</button>
+</section>
+<section class="card">
+<strong>Si vuelve a aparecer un error</strong>
+<p class="muted">Abre el archivo desde Chrome, no desde la vista previa de Mis archivos. Comprueba que Chrome tenga Internet y vuelve a seleccionar la captura. Si el navegador bloquea los trabajadores OCR en archivos locales, habrá que publicar la app en una dirección HTTPS.</p>
+</section>
+</main>
+<script>
+const photo=document.getElementById('photo'),preview=document.getElementById('preview'),status=document.getElementById('status'),recognized=document.getElementById('recognized');
+let currentFile=null,worker=null;
+photo.addEventListener('change',()=>{
+ currentFile=photo.files&&photo.files[0];
+ if(!currentFile)return;
+ preview.src=URL.createObjectURL(currentFile);preview.hidden=false;
+ status.textContent='Imagen cargada ('+Math.round(currentFile.size/1024)+' KB). Pulsa Leer.';
+});
+async function loadScript(src){
+ return new Promise((resolve,reject)=>{
+  const script=document.createElement('script');script.src=src;script.onload=resolve;script.onerror=()=>reject(new Error('No se pudo descargar el motor OCR. Comprueba tu conexión a Internet.'));
+  document.head.appendChild(script);
+ });
+}
+document.getElementById('read').addEventListener('click',async()=>{
+ if(!currentFile){status.textContent='Primero selecciona una captura.';return;}
+ const button=document.getElementById('read');button.disabled=true;
+ try{
+  status.textContent='Preparando motor OCR…';
+  if(!window.Tesseract)await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
+  status.textContent='Iniciando reconocimiento. La primera carga puede tardar…';
+  if(worker){try{await worker.terminate()}catch(e){}}
+  worker=await Tesseract.createWorker('eng',1,{
+   logger:m=>{if(m.status)status.textContent=m.status+(m.progress!==undefined?' '+Math.round(m.progress*100)+'%':'');},
+   workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',
+   corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1',
+   langPath:'https://tessdata.projectnaptha.com/4.0.0',
+   workerBlobURL:true
+  });
+  const result=await worker.recognize(currentFile);
+  recognized.value=result.data.text||'No se detectó texto claro.';
+  status.innerHTML='<span class="good">Lectura terminada.</span> Verifica manualmente cada cifra y cada signo. El OCR no identifica por sí solo qué casillas se cruzan.';
+ }catch(e){
+  status.textContent='No se pudo iniciar el OCR: '+(e.message||String(e))+'\n\nPrueba Chrome con Internet. Si persiste, el archivo local puede estar bloqueando el trabajador OCR; será necesario alojar la app en HTTPS.';
+ }finally{button.disabled=false;}
+});
+document.getElementById('copy').addEventListener('click',async()=>{
+ if(!recognized.value.trim()){status.textContent='No hay texto para copiar.';return;}
+ try{await navigator.clipboard.writeText(recognized.value);status.textContent='Texto copiado.';}
+ catch(e){recognized.select();status.textContent='Texto seleccionado. Mantén pulsado y elige Copiar.';}
+});
+</script></body></html>

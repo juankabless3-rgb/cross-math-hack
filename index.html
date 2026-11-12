@@ -64,13 +64,7 @@ document.getElementById('read').addEventListener('click',async()=>{
    langPath:'https://tessdata.projectnaptha.com/4.0.0',
    workerBlobURL:true
   });
-  const imageData=await new Promise((resolve,reject)=>{
-   const reader=new FileReader();
-   reader.onload=()=>resolve(reader.result);
-   reader.onerror=()=>reject(new Error('Android no pudo leer el archivo. Prueba guardar la captura como JPG o PNG.'));
-   reader.readAsDataURL(currentFile);
-  });
-  const result=await worker.recognize(imageData);
+  const result=await worker.recognize(currentFile);
   recognized.value=result.data.text||'No se detectó texto claro.';
   status.innerHTML='<span class="good">Lectura terminada.</span> Verifica manualmente cada cifra y cada signo. El OCR no identifica por sí solo qué casillas se cruzan.';
  }catch(e){
